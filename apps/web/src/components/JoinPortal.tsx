@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE } from '../lib/api';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, Send, Copy, ClipboardCheck, ArrowRight, UserCheck, ShieldCheck, HelpCircle, FileText, FileSpreadsheet, Loader2, RefreshCw, UploadCloud, Trash2, CheckCircle2, CloudLightning } from 'lucide-react';
 import { db } from '../firebase';
@@ -11,7 +12,7 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../lib/firestoreUtils';
-import { Job } from '../types';
+import { Job } from '@hireu/shared';
 
 // Helper to clean and capitalize candidate names from file name
 const parseFileName = (fileName: string) => {
@@ -315,7 +316,7 @@ export default function JoinPortal({
     setScanResult(null);
 
     try {
-      const response = await fetch('/api/ai/analyze-resume', {
+      const response = await fetch(`${API_BASE}/api/ai/analyze-resume`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ resumeText: candResume })
@@ -338,7 +339,7 @@ export default function JoinPortal({
     setGeneratedPost('');
 
     try {
-      const response = await fetch('/api/ai/generate-job-post', {
+      const response = await fetch(`${API_BASE}/api/ai/generate-job-post`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

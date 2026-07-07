@@ -15,12 +15,22 @@
     "moduleDetection": "force",
     "allowJs": true,
     "jsx": "react-jsx",
+    "types": [
+      "vite/client"
+    ],
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@hireu/shared": [
+        "../../packages/shared/src/index.ts"
       ]
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
-  }
+  },
+  "include": [
+    "src",
+    "../../packages/shared/src"
+  ]
 }

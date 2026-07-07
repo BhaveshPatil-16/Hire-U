@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { TalentProfile } from '../types';
+import { TalentProfile } from '@hireu/shared';
 import { Sparkles, Users, Search, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 
 interface TalentNetworkProps {

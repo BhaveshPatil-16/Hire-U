@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Company, Job } from '../types';
+import { Company, Job } from '@hireu/shared';
 
 const CompanyLogo = ({ logoUrl, companyName, logoColor, className = "w-11 h-11" }: { logoUrl?: string; companyName: string; logoColor: string; className?: string }) => {
   const [imgError, setImgError] = useState(false);

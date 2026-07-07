@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE } from '../lib/api';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   signInWithEmailAndPassword, 
@@ -37,7 +38,7 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
         const user = userCredential.user;
         
         // Trigger background welcome email dispatch
-        fetch('/api/auth/welcome', {
+        fetch(`${API_BASE}/api/auth/welcome`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: user.email }),

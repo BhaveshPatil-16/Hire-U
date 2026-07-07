@@ -1,3 +1,4 @@
+import { API_BASE } from '../lib/api';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Mail, RefreshCw, Server, Send, AlertTriangle, ShieldCheck, ExternalLink, Inbox, ArrowRight } from 'lucide-react';
@@ -28,7 +29,7 @@ export default function MailSandbox({ isOpen, onClose }: MailSandboxProps) {
   const fetchEmails = async (isBackground = false) => {
     if (!isBackground) setLoading(true);
     try {
-      const response = await fetch('/api/emails');
+      const response = await fetch(`${API_BASE}/api/emails`);
       if (response.ok) {
         const data = await response.json();
         setEmails(data.emails || []);
@@ -47,7 +48,7 @@ export default function MailSandbox({ isOpen, onClose }: MailSandboxProps) {
 
   const checkSmtpConfig = async () => {
     try {
-      const response = await fetch('/api/status');
+      const response = await fetch(`${API_BASE}/api/status`);
       if (response.ok) {
         // We'll also fetch general status to see if SMTP env is present, 
         // or we can detect it based on sent email statuses.

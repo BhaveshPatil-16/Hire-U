@@ -4,14 +4,28 @@ import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import nodemailer from "nodemailer";
-import { INITIAL_JOBS, INITIAL_COMPANIES, Job } from "./src/types";
+import { INITIAL_JOBS, INITIAL_COMPANIES, Job } from "@hireu/shared";
 
-dotenv.config();
+dotenv.config({ path: path.resolve(process.cwd(), '../../.env.local') });
+dotenv.config({ path: '.env.local' });
+dotenv.config(); // fallback to .env
 
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT || 3000);
+const webRoot = path.resolve(process.cwd(), "../web");
 
 app.use(express.json());
+
+// CORS — allow Vercel frontend to call this Railway backend
+app.use((req, res, next) => {
+  const allowedOrigin = process.env.CORS_ORIGIN || '*';
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
+
 
 // ==========================================
 // EMAIL INTEGRATION & DEVELOPER MAIL SANDBOX
@@ -691,12 +705,13 @@ app.post("/api/auth/welcome", async (req, res) => {
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
+      root: webRoot,
       server: { middlewareMode: true },
       appType: "spa",
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), 'dist');
+    const distPath = path.join(webRoot, 'dist');
     app.use(express.static(distPath));
     // Serve SPA index.html for all other routes in production
     app.get('*', (req, res) => {

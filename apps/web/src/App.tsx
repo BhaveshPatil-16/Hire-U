@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE } from './lib/api';
 import { motion, AnimatePresence } from 'motion/react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -34,7 +35,7 @@ import {
   Job, 
   Company,
   TalentProfile 
-} from './types';
+} from '@hireu/shared';
 import { Sparkles, X, CheckCircle2, AlertCircle, Sparkle, Loader2, ArrowRight, UploadCloud, Trash2, FileText } from 'lucide-react';
 
 // Helper to clean and capitalize candidate names from file name for modal
@@ -517,7 +518,7 @@ export default function App() {
     }
 
     // Trigger real backend endpoint for job application and email dispatches
-    fetch('/api/apply', {
+    fetch(`${API_BASE}/api/apply`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

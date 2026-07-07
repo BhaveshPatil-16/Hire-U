@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { SuccessMetric } from '../types';
+import { SuccessMetric } from '@hireu/shared';
 import { TrendingUp, Award, Clock, Sparkles } from 'lucide-react';
 
 interface SuccessMetricsProps {

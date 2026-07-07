@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE } from '../lib/api';
 import { motion, AnimatePresence } from 'motion/react';
-import { Job, TalentProfile } from '../types';
+import { Job, TalentProfile } from '@hireu/shared';
 import { Sparkles, ArrowRight, Loader2, Target, CheckCircle2, AlertTriangle, ShieldCheck } from 'lucide-react';
 
 interface AiMatcherProps {
@@ -31,7 +32,7 @@ export default function AiMatcher({ jobs, preSelectedTalent, clearPreSelectedTal
     setMatchResults(null);
 
     try {
-      const response = await fetch('/api/ai/match', {
+      const response = await fetch(`${API_BASE}/api/ai/match`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ skills: inputText })

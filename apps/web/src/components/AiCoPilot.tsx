@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { API_BASE } from '../lib/api';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Send, MessageSquareCode, Sparkles, Loader2, RefreshCw } from 'lucide-react';
 
@@ -54,7 +55,7 @@ export default function AiCoPilot({ isOpen, onClose }: AiCoPilotProps) {
         content: m.content
       }));
 
-      const response = await fetch('/api/ai/chat', {
+      const response = await fetch(`${API_BASE}/api/ai/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: chatHistory })
