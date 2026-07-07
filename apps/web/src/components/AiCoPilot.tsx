@@ -60,12 +60,17 @@ export default function AiCoPilot({ isOpen, onClose }: AiCoPilotProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: chatHistory })
       });
+
+      if (!response.ok) {
+        throw new Error(`Co-pilot API returned ${response.status}`);
+      }
+
       const data = await response.json();
 
       const botMsg: Message = {
         id: Math.random().toString(),
         sender: 'bot',
-        content: data.text,
+        content: data.text || 'I am online, but I could not generate a response. Please try again.',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
 
