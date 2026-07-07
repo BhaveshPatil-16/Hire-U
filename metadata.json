@@ -1,0 +1,6 @@
+{
+  "name": "HIREU",
+  "description": "A premium, fully responsive AI-powered job portal website with smart resume matching, career pathways, company insights, and interactive hiring tools.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

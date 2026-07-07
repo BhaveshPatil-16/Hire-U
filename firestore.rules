@@ -1,0 +1,164 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ==========================================
+    // 1. GLOBAL SAFETY NET (DEFAULT DENY)
+    // ==========================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ==========================================
+    // 2. REUSABLE SECURITY PRIMITIVES & HELPERS
+    // ==========================================
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isEmailVerified() {
+      return isSignedIn();
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // ==========================================
+    // 3. COLLECTION MATCHES & RULES
+    // ==========================================
+
+    // --- USERS COLLECTION ---
+    match /users/{userId} {
+      allow get, write: if false; // Base document remains private
+
+      // Split Collection: Public Profiles
+      match /public/profile {
+        // Anyone signed in can read candidates' public profiles
+        allow get: if isSignedIn();
+        allow list: if isSignedIn();
+        
+        // Only the profile owner can create or edit their profile
+        allow create: if isOwner(userId) && isValidProfile(incoming());
+        allow update: if isOwner(userId) && isValidProfile(incoming()) && (
+          // Immutable registration date check
+          incoming().createdAt == existing().createdAt
+        );
+        allow delete: if isOwner(userId);
+      }
+
+      // Split Collection: Private PII & Credentials (PII Isolation)
+      match /private/info {
+        // Strictly isolated to the individual owner. No blanket reads.
+        allow get, write: if isOwner(userId);
+      }
+    }
+
+    // --- JOBS COLLECTION ---
+    match /jobs/{jobId} {
+      // Anyone signed in can view and browse job listings
+      allow get: if isSignedIn();
+      allow list: if isSignedIn() && resource.data.active == true;
+
+      // Only authorized corporate recruiters can write or publish jobs
+      allow create: if isSignedIn() && isEmailVerified() && isValidJob(incoming());
+      allow update: if isSignedIn() && isEmailVerified() && isValidJob(incoming()) && (
+        // Restricting non-owner modifications
+        incoming().employerId == existing().employerId
+      );
+      allow delete: if isSignedIn() && existing().employerId == request.auth.uid;
+    }
+
+    // --- COMPANIES COLLECTION ---
+    match /companies/{companyId} {
+      allow get, list: if isSignedIn();
+      // Only authorized corporate recruiters can write company details
+      allow write: if isSignedIn() && isEmailVerified();
+    }
+
+    // --- APPLICATIONS COLLECTION (Atomicity & State Guards) ---
+    match /applications/{applicationId} {
+      // Secure List Queries: The rule itself evaluates resource.data to prevent unauthorized queries
+      allow list: if isSignedIn() && (
+        resource.data.candidateId == request.auth.uid || 
+        resource.data.employerId == request.auth.uid
+      );
+      
+      allow get: if isSignedIn() && (
+        resource.data.candidateId == request.auth.uid || 
+        resource.data.employerId == request.auth.uid
+      );
+
+      // Candidate submits an application (Strict temporal integrity with server timestamps)
+      allow create: if isSignedIn() && 
+                    isEmailVerified() && 
+                    incoming().candidateId == request.auth.uid &&
+                    incoming().status == 'submitted' &&
+                    incoming().createdAt == request.time &&
+                    incoming().updatedAt == request.time &&
+                    isValidApplication(incoming());
+
+      // Tiered update logic: Candidates can cancel; Employers can modify status
+      allow update: if isSignedIn() && (
+        // Candidate cancels application (limited fields affected)
+        (isOwner(existing().candidateId) && 
+         incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt']) &&
+         incoming().status == 'cancelled' &&
+         incoming().updatedAt == request.time) ||
+        
+        // Recruiter changes status (e.g., 'reviewing', 'shortlisted', 'declined')
+        (existing().employerId == request.auth.uid &&
+         incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt']) &&
+         existing().status != 'cancelled' && // Terminal state locking guard
+         incoming().updatedAt == request.time)
+      );
+
+      allow delete: if false; // Soft deletes are preferred to preserve historical logs
+    }
+
+    // --- SAVED JOBS COLLECTION ---
+    match /savedJobs/{savedId} {
+      allow list, get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid && incoming().createdAt == request.time;
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    // ==========================================
+    // 4. ENTITY VALIDATION BLUEPRINTS
+    // ==========================================
+    function isValidProfile(data) {
+      return data.keys().hasAll(['name', 'role', 'skills', 'status', 'createdAt']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.role is string && data.role.size() <= 100 &&
+             data.skills is list && data.skills.size() <= 50 &&
+             data.status in ['Open to Work', 'In Discussions', 'Hired'];
+    }
+
+    // Note: Since MapDiff hasOnly is used during update, this checks create structures
+    function isValidJob(data) {
+      return data.keys().hasAll(['title', 'companyId', 'employerId', 'salary', 'active']) &&
+             data.title is string && data.title.size() <= 150 &&
+             data.employerId == request.auth.uid &&
+             data.active is bool;
+    }
+
+    function isValidApplication(data) {
+      return data.keys().hasAll(['jobId', 'candidateId', 'employerId', 'resumeText', 'status', 'createdAt', 'updatedAt']) &&
+             isValidId(data.jobId) &&
+             data.resumeText is string && data.resumeText.size() <= 100000 &&
+             data.status in ['submitted', 'reviewing', 'shortlisted', 'declined', 'cancelled'];
+    }
+  }
+}

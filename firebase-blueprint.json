@@ -1,0 +1,181 @@
+{
+  "entities": {
+    "UserPublicProfile": {
+      "title": "UserPublicProfile",
+      "description": "Public profile details of a candidate",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Candidate's full name"
+        },
+        "role": {
+          "type": "string",
+          "description": "Candidate's professional role"
+        },
+        "skills": {
+          "type": "array",
+          "description": "List of professional skills detected"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Open to Work", "In Discussions", "Hired"],
+          "description": "Job search status of candidate"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Profile creation timestamp"
+        }
+      },
+      "required": ["name", "role", "skills", "status", "createdAt"]
+    },
+    "UserPrivateInfo": {
+      "title": "UserPrivateInfo",
+      "description": "Private contact details and PII",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Private email address"
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "Private phone number"
+        }
+      },
+      "required": ["email"]
+    },
+    "Job": {
+      "title": "Job",
+      "description": "Active job posting details",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Job title"
+        },
+        "companyId": {
+          "type": "string",
+          "description": "Associated company identifier"
+        },
+        "employerId": {
+          "type": "string",
+          "description": "UID of the employer who posted this job"
+        },
+        "salary": {
+          "type": "string",
+          "description": "Compensation bracket/details"
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Whether the job listing is active and open"
+        }
+      },
+      "required": ["title", "companyId", "employerId", "salary", "active"]
+    },
+    "Company": {
+      "title": "Company",
+      "description": "Company registration and profile details",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Company name"
+        },
+        "industry": {
+          "type": "string",
+          "description": "Primary market vertical"
+        }
+      },
+      "required": ["name"]
+    },
+    "Application": {
+      "title": "Application",
+      "description": "Job seeker job application details",
+      "type": "object",
+      "properties": {
+        "jobId": {
+          "type": "string",
+          "description": "Target job identifier"
+        },
+        "candidateId": {
+          "type": "string",
+          "description": "UID of the applicant"
+        },
+        "employerId": {
+          "type": "string",
+          "description": "UID of the job creator/employer"
+        },
+        "resumeText": {
+          "type": "string",
+          "description": "Raw or parsed resume contents used in matching"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["submitted", "reviewing", "shortlisted", "declined", "cancelled"],
+          "description": "Current workflow state of the application"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Application submission timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last workflow state transition timestamp"
+        }
+      },
+      "required": ["jobId", "candidateId", "employerId", "resumeText", "status", "createdAt", "updatedAt"]
+    },
+    "SavedJob": {
+      "title": "SavedJob",
+      "description": "Job postings saved by job seekers",
+      "type": "object",
+      "properties": {
+        "jobId": {
+          "type": "string",
+          "description": "Saved job identifier"
+        },
+        "userId": {
+          "type": "string",
+          "description": "UID of the job seeker who saved it"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when job was saved"
+        }
+      },
+      "required": ["jobId", "userId", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/public/profile": {
+      "schema": { "$ref": "#/entities/UserPublicProfile" },
+      "description": "Public candidate profiles"
+    },
+    "/users/{userId}/private/info": {
+      "schema": { "$ref": "#/entities/UserPrivateInfo" },
+      "description": "Isolated private candidate information"
+    },
+    "/jobs/{jobId}": {
+      "schema": { "$ref": "#/entities/Job" },
+      "description": "Corporate job listings"
+    },
+    "/companies/{companyId}": {
+      "schema": { "$ref": "#/entities/Company" },
+      "description": "Corporate employer organizations"
+    },
+    "/applications/{applicationId}": {
+      "schema": { "$ref": "#/entities/Application" },
+      "description": "Job application submittals"
+    },
+    "/savedJobs/{savedId}": {
+      "schema": { "$ref": "#/entities/SavedJob" },
+      "description": "Saved job references per user"
+    }
+  }
+}
