@@ -15,6 +15,30 @@ export default defineConfig(() => {
         '@hireu/shared': path.resolve(rootDir, '../../packages/shared/src/index.ts'),
       },
     },
+    build: {
+      chunkSizeWarningLimit: 800,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+              return 'react';
+            }
+            if (id.includes('node_modules/firebase')) {
+              return 'firebase';
+            }
+            if (id.includes('node_modules/motion')) {
+              return 'motion';
+            }
+            if (id.includes('node_modules/lucide-react')) {
+              return 'icons';
+            }
+            if (id.includes('packages/shared')) {
+              return 'shared';
+            }
+          },
+        },
+      },
+    },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
