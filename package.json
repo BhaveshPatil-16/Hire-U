@@ -6,6 +6,9 @@
     "apps/*",
     "packages/*"
   ],
+  "dependencies": {
+    "@google/genai": "^2.4.0"
+  },
   "scripts": {
     "dev": "npm run dev:web",
     "dev:web": "npm run dev -w @hireu/web",

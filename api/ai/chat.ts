@@ -1,5 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
-import { INITIAL_JOBS } from "@hireu/shared";
+import { INITIAL_JOBS } from "../../packages/shared/src/index";
 
 type ChatMessage = {
   sender: "user" | "bot";
@@ -30,12 +29,13 @@ function offlineChat(message: string): string {
   return `Hi there! I am your **HIREU AI Career Co-pilot**. I can help you search active positions, refine resume bullet points, draft outreach emails, or practice interviews.\n\nTry asking me:\n- "What jobs are open right now?"\n- "How do I improve my resume for a Senior NLP Researcher role?"\n- "Draft a short cold outreach email for Velo Design"`;
 }
 
-function getAiClient(): GoogleGenAI | null {
+async function getAiClient(): Promise<any | null> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey || apiKey === "MY_GEMINI_API_KEY" || apiKey.trim() === "") {
     return null;
   }
 
+  const { GoogleGenAI } = await import("@google/genai");
   return new GoogleGenAI({ apiKey });
 }
 
@@ -53,7 +53,16 @@ export default async function handler(req: any, res: any) {
   }
 
   const lastUserMessage = messages[messages.length - 1]?.content || "";
-  const ai = getAiClient();
+  let ai: any | null = null;
+  try {
+    ai = await getAiClient();
+  } catch (err) {
+    return res.status(200).json({
+      text: offlineChat(lastUserMessage) + "\n\n*(Note: Running in offline backup mode because the AI service could not initialize.)*",
+      offline: true,
+      error: err instanceof Error ? err.message : "AI service initialization failed"
+    });
+  }
 
   if (!ai) {
     return res.status(200).json({ text: offlineChat(lastUserMessage), offline: true });
