@@ -64,7 +64,7 @@ Keep answers structured with markdown, punchy, conversational, and useful.`;
   return data?.candidates?.[0]?.content?.parts?.map(part => part.text).join("") || "";
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   res.setHeader("Content-Type", "application/json");
 
   if (req.method !== "POST") {
@@ -107,4 +107,4 @@ export default async function handler(req, res) {
       error: err instanceof Error ? err.message : "Unknown request error"
     });
   }
-}
+};
